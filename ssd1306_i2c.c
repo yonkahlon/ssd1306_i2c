@@ -25,6 +25,7 @@ All text above, and the splash screen below must be included in any redistributi
 *********************************************************************/
 
 #include <stdio.h>
+#include <stdbool.h>
 #include <string.h>
 
 #include "ssd1306_i2c.h"
@@ -764,12 +765,39 @@ void ssd1306_write(int c)
 	}
 }
 
+void ssd1306_writeInv(int c)
+{
+	if (c == '\n') {
+		cursor_y += textsize * 8;
+		cursor_x = 0;
+	} else if (c == '\r') {
+		// skip em
+	} else {
+		ssd1306_drawCharInv(cursor_x, cursor_y, c, BLACK, WHITE, textsize);
+		cursor_x += textsize * 6;
+		if (wrap && (cursor_x > (WIDTH - textsize * 6))) {
+			cursor_y += textsize * 8;
+			cursor_x = 0;
+		}
+	}
+}
+
 void ssd1306_drawString(char *str)
 {
 	int i, end;
 	end = strlen(str);
-	for (i = 0; i < end; i++)
-		ssd1306_write(str[i]);
+
+    for (i = 0; i < end; i++)
+        ssd1306_write(str[i]);
+}
+
+void ssd1306_drawStringInv(char *str)
+{
+	int i, end;
+	end = strlen(str);
+   
+    for (i = 0; i < end; i++)
+        ssd1306_writeInv(str[i]);
 }
 
 // Draw a character
@@ -799,6 +827,47 @@ void ssd1306_drawChar(int x, int y, unsigned char c, int color, int size)
 							 size, color);
 				}
 			}
+			line >>= 1;
+		}
+	}
+}
+
+// Draw a character
+void ssd1306_drawCharInv(int x, int y, unsigned char c, int color1, int color2, int size)
+{
+
+	if ((x >= WIDTH) ||	// Clip right
+	    (y >= HEIGHT) ||	// Clip bottom
+	    ((x + 6 * size - 1) < 0) ||	// Clip left
+	    ((y + 8 * size - 1) < 0))	// Clip top
+		return;
+	int i;
+	int j;
+	for (i = 0; i < 6; i++) {
+		int line;
+		if (i == 5)
+			line = 0x0;
+		else
+			line = pgm_read_byte(font + (c * 5) + i);
+		for (j = 0; j < 8; j++) {
+			if (line & 0x1) {
+				if (size == 1)	// default size
+					ssd1306_drawPixel(x + i, y + j, color1);
+				else {	// big size
+					ssd1306_fillRect(x + (i * size),
+							 y + (j * size), size,
+							 size, color1);
+				}
+			}
+            else {
+                if (size == 1)	// default size
+					ssd1306_drawPixel(x + i, y + j, color2);
+				else {	// big size
+					ssd1306_fillRect(x + (i * size),
+							 y + (j * size), size,
+							 size, color2);
+				}
+            }
 			line >>= 1;
 		}
 	}

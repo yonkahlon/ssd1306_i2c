@@ -49,7 +49,7 @@ All text above, and the splash screen must be included in any redistribution
 
     -----------------------------------------------------------------------*/
 #define SSD1306_128_64
-//   #define SSD1306_128_32
+//#define SSD1306_128_32
 //   #define SSD1306_96_16
 /*=========================================================================*/
 
@@ -159,6 +159,8 @@ void ssd1306_fillRect(int x, int y, int w, int h, int fillcolor);
 
 void ssd1306_setTextSize(int s);
 void ssd1306_drawString(char *str);
+void ssd1306_drawStringInv(char *str);
 void ssd1306_drawChar(int x, int y, unsigned char c, int color, int size);
+void ssd1306_drawCharInv(int x, int y, unsigned char c, int color1, int color2, int size);
 
 #endif				/* _SSD1306_I2C_H_ */
